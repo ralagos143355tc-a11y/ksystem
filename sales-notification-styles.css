@@ -1,0 +1,36 @@
+/* Sales Notification Banner Styles */
+.sales-notification-banner {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 2px solid #10b981;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    animation: slideDown 0.3s ease-out;
+}
+
+.sales-notification-banner .alert-text {
+    color: #065f46 !important;
+}
+
+.sales-notification-banner .alert-text strong {
+    color: #047857 !important;
+}
+
+.sales-notification-banner .alert-link {
+    color: #059669 !important;
+}
+
+.sales-notification-banner .alert-link:hover {
+    color: #047857 !important;
+}
+
+.sales-notification-banner .alert-close {
+    color: #065f46 !important;
+}
+
+.sales-notification-banner .alert-close:hover {
+    background-color: rgba(6, 95, 70, 0.1);
+}
+
+

@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard - Seoul Surplus</title>
+  <link rel="stylesheet" href="user-style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2 class="logo">Customer</h2>
+    <nav>
+      <ul>
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#products">Products</a></li>
+        <li><a href="#cart">My Cart</a></li>
+        <li><a href="#reservations">My Reservations</a></li>
+        <li><a href="#account">Account</a></li>
+        <li><a href="#" id="sidebar-logout-btn">Logout</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+
+    <!-- Home -->
+    <section id="home" class="section active">
+      <h2 style="margin-top: 24px;">Featured Categories</h2>
+      <div class="categories-grid">
+        <button class="cat-card" data-category="Electronics">Electronics</button>
+        <button class="cat-card" data-category="Clothing">Clothing</button>
+        <button class="cat-card" data-category="Beauty">Beauty</button>
+        <button class="cat-card" data-category="Home">Home</button>
+        <button class="cat-card" data-category="Sports">Sports</button>
+        <button class="cat-card" data-category="Accessories">Accessories</button>
+      </div>
+      <div class="quick-stats" id="quick-stats">
+        <div class="qstat">
+          <div class="qstat-label">Cart Items</div>
+          <div class="qstat-value" id="qs-cart">0</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-label">Pending Reservations</div>
+          <div class="qstat-value" id="qs-pending">0</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-label">Daily Limit Used</div>
+          <div class="qstat-value" id="qs-daily">0/5</div>
+        </div>
+      </div>
+      <h2 style="margin-top: 24px;">Featured Products</h2>
+      <div class="product-grid" id="featured-grid"></div>
+      <h2 style="margin-top: 24px;">New Arrivals</h2>
+      <div class="product-grid" id="new-arrivals-grid"></div>
+      <div class="promo-card" style="margin-top:24px;">
+        <div>
+          <h3>Ongoing Promotions</h3>
+          <p>Save an extra 10% on Accessories this week with code <strong>ACCESS10</strong>.</p>
+        </div>
+        <a href="#products" class="btn">Shop Deals</a>
+      </div>
+    </section>
+
+    <!-- Products -->
+    <section id="products" class="section">
+      <div class="products-header">
+        <h1>Product Catalog</h1>
+        <div class="filters">
+          <div class="search-bar">
+            <input id="search-input" type="text" placeholder="Search products...">
+          </div>
+          <div class="filter-controls">
+            <select id="category-filter">
+              <option value="">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Beauty">Beauty</option>
+              <option value="Home">Home</option>
+              <option value="Sports">Sports</option>
+              <option value="Accessories">Accessories</option>
+            </select>
+            <select id="condition-filter">
+              <option value="">All Conditions</option>
+              <option value="New">New</option>
+              <option value="Like New">Like New</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+            </select>
+            <select id="brand-filter">
+              <option value="">All Brands</option>
+              <option value="Samsung">Samsung</option>
+              <option value="LG">LG</option>
+              <option value="Hyundai">Hyundai</option>
+              <option value="Kia">Kia</option>
+              <option value="Other">Other</option>
+            </select>
+            <select id="stock-filter">
+              <option value="">All Stock Levels</option>
+              <option value="high">In Stock (High)</option>
+              <option value="medium">Medium Stock</option>
+              <option value="low">Low Stock</option>
+              <option value="out">Out of Stock</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="product-grid" id="product-grid">
+        <!-- Products will be dynamically loaded here -->
+      </div>
+    </section>
+
+    <!-- My Cart -->
+    <section id="cart" class="section">
+      <h1>My Cart</h1>
+      <div class="cart-container">
+        <div class="cart-actions" style="margin-bottom: 20px;">
+          <button class="btn" id="select-all-btn">Select All</button>
+          <button class="btn btn-secondary" id="deselect-all-btn">Deselect All</button>
+          <button class="btn btn-success" id="reserve-selected-btn">Reserve Selected</button>
+        </div>
+        
+        <div class="cart-table-wrapper">
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="select-all-checkbox"></th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cart-table-body">
+              <!-- Cart items will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="cart-summary" id="cart-summary" style="display: none;">
+          <div class="summary-row">
+            <span>Total Items:</span>
+            <span id="total-items">0</span>
+          </div>
+          <div class="summary-row">
+            <span>Total Amount:</span>
+            <span id="total-amount">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- My Reservations -->
+    <section id="reservations" class="section">
+      <h1>My Reservations</h1>
+      <div class="reservations-container">
+        <div class="reservations-header" style="margin-bottom: 20px;">
+          <button class="btn btn-secondary" onclick="reloadReservations()">Refresh</button>
+        </div>
+        <div id="reservations-list" class="reservations-list">
+          <!-- Reservations will be dynamically loaded here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Account -->
+    <section id="account" class="section">
+      <h1>Account</h1>
+      <div class="account-card">
+        <div>
+          <div class="field"><span>Name:</span> <strong id="account-name">Customer</strong></div>
+          <div class="field"><span>Email:</span> <strong id="account-email">customer@seoul.com</strong></div>
+          <div class="field"><span>Member Since:</span> <strong>2024</strong></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+  <script src="auth.js"></script>
+  <script src="inventory-utils.js"></script>
+  <script>
+  (function(){
+    var auth = window.KSurplusAuth;
+    var inventoryUtils = window.InventoryUtils;
+    var session;
+    try {
+      session = auth.requireCustomer();
+    } catch(err) {
+      window.location.replace('login.html');
+      return;
+    }
+    var currentUser = session.user;
+    if (!currentUser || !currentUser.id) {
+      console.error('Current user not found or missing ID');
+      // Fallback - redirect to login if user is invalid
+      window.location.replace('login.html');
+      return;
+    }
+    
+    var accountNameField = document.getElementById('account-name');
+    var accountEmailField = document.getElementById('account-email');
+    if (accountNameField) accountNameField.textContent = currentUser.name || 'Customer';
+    if (accountEmailField) accountEmailField.textContent = currentUser.email || 'customer@seoul.com';
+
+    // Initialize products array - will be populated from localStorage or API
+    var products = [];
+
+    var reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    var lastReservationSync = localStorage.getItem('lastReservationSync') || '0';
+    
+    // API configuration
+    var API_BASE_URL = (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    var DEFAULT_PRODUCT_IMAGE = 'https://via.placeholder.com/400?text=No+Image';
+    
+    // Function to resolve product image URL
+    function resolveProductImage(rawImageValue) {
+      if (rawImageValue === null || rawImageValue === undefined) {
+        return DEFAULT_PRODUCT_IMAGE;
+      }
+      var value = String(rawImageValue).trim();
+      if (!value || value === 'null' || value === 'undefined') {
+        return DEFAULT_PRODUCT_IMAGE;
+      }
+      if (/^(data:|blob:|https?:\/\/)/i.test(value)) {
+        return value;
+      }
+      var normalizedBase = API_BASE_URL;
+      var normalizedPath = value.replace(/^\/+/, '');
+      return normalizedBase + '/' + normalizedPath;
+    }
+    
+    // Load products from API
+    function loadProductsFromServer() {
+      return fetch(API_BASE_URL + '/api/products')
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Failed to fetch products');
+          }
+          return response.json();
+        })
+        .then(function(apiProducts) {
+          if (!Array.isArray(apiProducts)) {
+            console.warn('Unexpected products response, falling back to localStorage');
+            return;
+          }
+
+          products = apiProducts.map(function(apiProduct) {
+            var localId = 'p' + apiProduct.id;
+            var resolvedImage = resolveProductImage(apiProduct.image_url || apiProduct.image);
+            return {
+              id: localId,
+              name: apiProduct.name,
+              brand: apiProduct.brand || 'Unknown',
+              category: apiProduct.category_name || 'Uncategorized',
+              type: apiProduct.type || 'Product',
+              size: apiProduct.size || 'One Size',
+              condition: apiProduct.condition_grade || 'Good',
+              price: parseFloat(apiProduct.retail_price || 0),
+              originalPrice: apiProduct.original_price ? parseFloat(apiProduct.original_price) : null,
+              stock: apiProduct.stock_quantity || 0,
+              availability: (apiProduct.stock_quantity || 0) > 0 ? 'In Stock' : 'Out of Stock',
+              image: resolvedImage
+            };
+          });
+
+          localStorage.setItem('products', JSON.stringify(products));
+          renderProducts();
+        })
+        .catch(function(error) {
+          console.error('Failed to load products from server. Using cached data.', error);
+          // Fallback to localStorage if API fails
+          var savedProducts = localStorage.getItem('products');
+          if (savedProducts) {
+            try {
+              var adminProducts = JSON.parse(savedProducts);
+              products = adminProducts.map(function(p) {
+                return Object.assign({}, p, {
+                  image: resolveProductImage(p.image)
+                });
+              });
+              renderProducts();
+            } catch(e) {
+              console.error('Failed to parse cached products:', e);
+            }
+          }
+        });
+    }
+    
+    // Load reservations from database
+    function loadUserReservationsFromServer() {
+      if (!currentUser || !currentUser.id) return;
+      
+      return fetch(API_BASE_URL + '/api/reservations/user/' + currentUser.id)
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Failed to fetch reservations');
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          var serverReservations = Array.isArray(data) ? data : [];
+          
+          // Convert server format to local format
+          var convertedReservations = serverReservations.map(function(serverRes) {
+            var reservedDate = serverRes.reserved_at ? new Date(serverRes.reserved_at) : new Date();
+            return {
+              id: serverRes.id,
+              reservation_code: serverRes.reservation_code,
+              productId: serverRes.product_id,
+              productName: serverRes.product_name || 'Unknown Product',
+              productImage: serverRes.image_url || 'https://via.placeholder.com/70?text=No+Image',
+              price: parseFloat(serverRes.reserved_price || 0),
+              status: serverRes.status || 'Pending',
+              date: reservedDate.toLocaleDateString(),
+              time: reservedDate.toLocaleTimeString(),
+              customerId: serverRes.customer_id,
+              customerName: (serverRes.first_name || '') + ' ' + (serverRes.last_name || ''),
+              customerEmail: serverRes.customer_email || '',
+              reservationDate: reservedDate.toISOString(),
+              expirationDate: serverRes.pickup_at ? new Date(serverRes.pickup_at).toISOString() : null,
+              pickupLocation: 'Seoul Surplus Store - Main Branch',
+              receiptGenerated: serverRes.status === 'Confirmed',
+              receiptNumber: serverRes.status === 'Confirmed' ? serverRes.reservation_code : null,
+              confirmedDate: serverRes.status === 'Confirmed' ? reservedDate.toISOString() : null,
+              productDetails: {
+                brand: 'Unknown',
+                category: 'Unknown',
+                type: 'Unknown',
+                size: 'One Size',
+                condition: 'Good',
+                originalPrice: parseFloat(serverRes.reserved_price || 0)
+              }
+            };
+          });
+          
+          // Check for status changes and show notifications
+          checkForStatusChanges(reservations, convertedReservations);
+          
+          // Update local reservations
+          reservations = convertedReservations;
+          localStorage.setItem('reservations', JSON.stringify(reservations));
+          localStorage.setItem('lastReservationSync', Date.now().toString());
+          
+          renderReservations();
+          updateUserStats();
+          
+          return reservations;
+        })
+        .catch(function(error) {
+          console.error('Error loading reservations from server:', error);
+          // Continue with local reservations if server fails
+          return reservations;
+        });
+    }
+    
+    // Check for status changes and show notifications
+    function checkForStatusChanges(oldReservations, newReservations) {
+      var oldMap = {};
+      oldReservations.forEach(function(r) {
+        oldMap[r.id] = r.status;
+      });
+      
+      newReservations.forEach(function(newRes) {
+        var oldStatus = oldMap[newRes.id];
+        var newStatus = newRes.status;
+        
+        if (oldStatus && oldStatus !== newStatus) {
+          if (newStatus === 'Confirmed') {
+            showNotification('🎉 Your reservation for ' + newRes.productName + ' has been CONFIRMED! Receipt #' + (newRes.reservation_code || newRes.id) + ' is ready for pickup.');
+          } else if (newStatus === 'Declined') {
+            showNotification('❌ Your reservation for ' + newRes.productName + ' has been DECLINED. Please contact support if you have questions.');
+          } else if (newStatus === 'Cancelled') {
+            showNotification('⚠️ Your reservation for ' + newRes.productName + ' has been CANCELLED.');
+          }
+        }
+      });
+    }
+
+    // Debug: Log reservations on load
+    console.log('Loaded reservations from localStorage:', reservations);
+
+    // Load products from API on page load
+    loadProductsFromServer();
+
+  // Navigation
+  var sections = Array.from(document.querySelectorAll('.section'));
+  var navLinks = Array.from(document.querySelectorAll('.sidebar nav a'));
+  
+  function showSection(hash){
+    var id = (hash||'#home').replace('#','');
+    sections.forEach(function(s){ s.classList.toggle('active', s.id === id); });
+    navLinks.forEach(function(l){ l.classList.toggle('active', l.getAttribute('href') === '#'+id); });
+    
+    // Refresh reservations when navigating to reservations section
+    if (id === 'reservations') {
+      reloadReservations();
+    }
+  }
+    
+    window.addEventListener('hashchange', function(){ showSection(location.hash); });
+    showSection(location.hash);
+
+    // Toast helper
+    var toast = document.getElementById('toast');
+    function showToast(text){
+      if (!toast) return;
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(function(){ toast.classList.remove('show'); }, 3000);
+    }
+
+    function handleLogout(e){
+      if (e) e.preventDefault();
+      if (confirm('Are you sure you want to logout?')) {
+        if (auth) auth.logout('Customer logout');
+        localStorage.removeItem('reservations');
+        window.location.replace('login.html');
+      }
+    }
+
+    // Get stock level status
+    function getStockLevel(stock) {
+      if (inventoryUtils && inventoryUtils.getStockMeta) {
+        var meta = inventoryUtils.getStockMeta(stock);
+        return {
+          level: meta.status,
+          label: meta.label,
+          color: meta.status === 'out' ? '#dc2626' : meta.status === 'low' ? '#f59e0b' : meta.status === 'medium' ? '#3b82f6' : '#10b981',
+          percentage: meta.percentage
+        };
+      }
+      if (stock === 0) return { level: 'out', label: 'Out of Stock', color: '#dc2626', percentage: 0 };
+      if (stock <= 2) return { level: 'low', label: 'Low Stock', color: '#f59e0b', percentage: (stock / 10) * 100 };
+      if (stock <= 5) return { level: 'medium', label: 'Medium Stock', color: '#3b82f6', percentage: (stock / 10) * 100 };
+      return { level: 'high', label: 'In Stock', color: '#10b981', percentage: Math.min((stock / 15) * 100, 100) };
+    }
+
+    // Render products
+    function renderProducts(productsToRender = products){
+      var productGrid = document.getElementById('product-grid');
+      if (!productGrid) return;
+      
+      productGrid.innerHTML = '';
+      
+      productsToRender.forEach(function(product){
+        var productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.setAttribute('data-name', product.name);
+        productCard.setAttribute('data-category', product.category);
+        productCard.setAttribute('data-brand', product.brand);
+        productCard.setAttribute('data-condition', product.condition);
+        
+        var discount = Math.round((1 - product.price / product.originalPrice) * 100);
+        var stockInfo = getStockLevel(product.stock);
+        var productImage = resolveProductImage(product.image);
+        
+        productCard.innerHTML = `
+          <img src="${productImage}" alt="${product.name}" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';">
+          <div class="info">
+            <p class="name">${product.name}</p>
+            <p class="brand">${product.brand}</p>
+            <p class="details">${product.type} • ${product.size} • ${product.condition}</p>
+            <div class="stock-indicator">
+              <div class="stock-header">
+                <span class="stock-badge stock-${stockInfo.level}">${stockInfo.label}</span>
+                <span class="stock-count">${product.stock} available</span>
+              </div>
+              <div class="stock-progress-bar">
+                <div class="stock-progress-fill" style="width: ${stockInfo.percentage}%; background-color: ${stockInfo.color};"></div>
+              </div>
+            </div>
+            <p class="price">$${product.price} <span class="old-price">$${product.originalPrice}</span></p>
+            <p class="discount">-${discount}%</p>
+            <div class="product-actions">
+              <button class="btn btn-outline add-cart-btn" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>Add to Cart</button>
+              <button class="btn reserve-btn" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>${product.stock === 0 ? 'Out of Stock' : 'Reserve'}</button>
+            </div>
+          </div>
+        `;
+        
+        productGrid.appendChild(productCard);
+      });
+    }
+
+    // Filter products
+    function applyFilters(){
+      var searchTerm = (document.getElementById('search-input').value || '').toLowerCase();
+      var categoryFilter = document.getElementById('category-filter').value;
+      var conditionFilter = document.getElementById('condition-filter').value;
+      var brandFilter = document.getElementById('brand-filter').value;
+      var stockFilter = document.getElementById('stock-filter').value;
+      
+      var filteredProducts = products.filter(function(product){
+        var matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                          product.brand.toLowerCase().includes(searchTerm);
+        var matchesCategory = !categoryFilter || product.category === categoryFilter;
+        var matchesCondition = !conditionFilter || product.condition === conditionFilter;
+        var matchesBrand = !brandFilter || product.brand === brandFilter;
+        var matchesStock = !stockFilter || getStockLevel(product.stock).level === stockFilter;
+        
+        return matchesSearch && matchesCategory && matchesCondition && matchesBrand && matchesStock;
+      });
+      
+      renderProducts(filteredProducts);
+    }
+
+    // Event listeners for filters
+    document.getElementById('search-input').addEventListener('input', applyFilters);
+    document.getElementById('category-filter').addEventListener('change', applyFilters);
+    document.getElementById('condition-filter').addEventListener('change', applyFilters);
+    document.getElementById('brand-filter').addEventListener('change', applyFilters);
+    document.getElementById('stock-filter').addEventListener('change', applyFilters);
+
+    // Daily order tracking
+    const DAILY_LIMIT = 5;
+    const ORDER_TRACKING_KEY = 'ksurplus_daily_orders';
+    const DAILY_USER_KEY = (currentUser && (currentUser.id || currentUser.email || currentUser.username)) || 'guest';
+
+    function getTodayString() {
+      return new Date().toLocaleDateString();
+    }
+
+    function getDailyOrderCount() {
+      try {
+        const today = getTodayString();
+        const dailyOrders = JSON.parse(localStorage.getItem(ORDER_TRACKING_KEY) || '{}');
+        const dayEntry = dailyOrders[today];
+        
+        if (dayEntry === undefined) return 0;
+        if (typeof dayEntry === 'number') {
+          // Backwards compatibility: old format stored a single number
+          return dayEntry;
+        }
+        if (typeof dayEntry === 'object') {
+          return dayEntry[DAILY_USER_KEY] || 0;
+        }
+        return 0;
+      } catch(e) {
+        console.warn('Unable to read daily order count:', e);
+        return 0;
+      }
+    }
+
+    function incrementDailyOrderCount(count = 1) {
+      try {
+        const today = getTodayString();
+        const dailyOrders = JSON.parse(localStorage.getItem(ORDER_TRACKING_KEY) || '{}');
+        let dayEntry = dailyOrders[today];
+        
+        if (dayEntry === undefined) {
+          dayEntry = {};
+        } else if (typeof dayEntry === 'number') {
+          // Convert legacy format to per-user object
+          dayEntry = { legacy: dayEntry };
+        } else if (typeof dayEntry !== 'object') {
+          dayEntry = {};
+        }
+        
+        dayEntry[DAILY_USER_KEY] = (dayEntry[DAILY_USER_KEY] || 0) + count;
+        dailyOrders[today] = dayEntry;
+        localStorage.setItem(ORDER_TRACKING_KEY, JSON.stringify(dailyOrders));
+      } catch(e) {
+        console.error('Error updating daily order count:', e);
+      }
+    }
+
+    function canMakeReservation(itemCount = 1) {
+      const currentCount = getDailyOrderCount();
+      return (currentCount + itemCount) <= DAILY_LIMIT;
+    }
+
+    function updateDailyLimitDisplay() {
+      const dailyCountElement = document.getElementById('daily-count');
+      if (dailyCountElement) {
+        const currentCount = getDailyOrderCount();
+        dailyCountElement.textContent = currentCount;
+        
+        // Add visual feedback based on usage
+        const limitInfo = document.querySelector('.daily-limit-info');
+        if (limitInfo) {
+          limitInfo.className = 'daily-limit-info';
+          if (currentCount >= DAILY_LIMIT) {
+            limitInfo.classList.add('limit-reached');
+          } else if (currentCount >= DAILY_LIMIT * 0.8) {
+            limitInfo.classList.add('limit-warning');
+          }
+        }
+      }
+    }
+    
+    // Update quick stats on the home section
+    function updateUserStats(){
+      try {
+        var cartCount = (cart || []).reduce(function(sum, item){ return sum + (item.quantity||0); }, 0);
+        var pendingCount = (reservations || []).filter(function(r){ return r.status === 'Pending'; }).length;
+        var dailyUsed = getDailyOrderCount();
+        var qsCart = document.getElementById('qs-cart');
+        var qsPending = document.getElementById('qs-pending');
+        var qsDaily = document.getElementById('qs-daily');
+        if (qsCart) qsCart.textContent = cartCount;
+        if (qsPending) qsPending.textContent = pendingCount;
+        if (qsDaily) qsDaily.textContent = dailyUsed + '/'+ DAILY_LIMIT;
+      } catch(e) {}
+    }
+    function checkForNewConfirmations() {
+      const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+      const lastNotificationTime = localStorage.getItem('lastNotificationTime') || '0';
+      
+      reservations.forEach(function(reservation) {
+        if (reservation.status === 'Confirmed' && 
+            reservation.confirmedDate && 
+            new Date(reservation.confirmedDate).getTime() > parseInt(lastNotificationTime)) {
+          
+          // Show notification
+          showNotification(`🎉 Your reservation for ${reservation.productName} has been confirmed! Receipt #${reservation.receiptNumber} is ready for pickup.`);
+          
+          // Update last notification time
+          localStorage.setItem('lastNotificationTime', new Date(reservation.confirmedDate).getTime().toString());
+        }
+      });
+    }
+
+    // Enhanced notification system
+    function showNotification(message) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = 'notification-popup';
+      notification.innerHTML = `
+        <div class="notification-content">
+          <div class="notification-icon">🔔</div>
+          <div class="notification-text">${message}</div>
+          <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+      `;
+      
+      // Add to page
+      document.body.appendChild(notification);
+      
+      // Auto remove after 10 seconds
+      setTimeout(function() {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 10000);
+    }
+
+    // Reserve product
+    function reserveProduct(productId){
+      var product = products.find(p => p.id === productId);
+      if (!product || product.stock === 0) return;
+      
+      // Determine maximum allowed by stock and remaining daily limit
+      var remainingDaily = DAILY_LIMIT - getDailyOrderCount();
+      var maxAllowed = Math.min(product.stock, Math.max(0, remainingDaily));
+      if (maxAllowed < 1) {
+        const currentCount = getDailyOrderCount();
+        showToast(`Daily limit reached! You can only order ${DAILY_LIMIT} items per day. (${currentCount}/${DAILY_LIMIT} used today)`);
+        return;
+      }
+      
+      var input = prompt(`Enter quantity to reserve (1-${maxAllowed})`, '1');
+      if (input === null) return; // cancelled
+      var qty = parseInt(input, 10);
+      if (isNaN(qty) || qty < 1 || qty > maxAllowed) {
+        showToast(`Please enter a valid quantity between 1 and ${maxAllowed}.`);
+        return;
+      }
+      
+      // Decrease stock in database and create reservations
+      var dbProductId = productId.toString().startsWith('p') ? productId.toString().substring(1) : productId;
+      var userId = currentUser ? currentUser.id : null;
+      
+      if (!userId) {
+        showToast('Error: User ID not found. Please log in again.');
+        return;
+      }
+      
+      // First, get or create customer record
+      fetch(API_BASE_URL + '/api/customers/user/' + userId)
+        .then(function(response) {
+          return response.json().then(function(data) {
+            if (!response.ok) {
+              throw new Error(data.error || 'Failed to get customer record');
+            }
+            return data.customer_id;
+          });
+        })
+        .then(function(customerId) {
+          // Create reservations in database
+          var reservationPromises = [];
+          for (var i = 0; i < qty; i++) {
+            reservationPromises.push(
+              fetch(API_BASE_URL + '/api/reservations', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  customer_id: customerId,
+                  product_id: dbProductId,
+                  reserved_price: product.price,
+                  notes: 'Reserved by customer',
+                  created_by: userId
+                })
+              })
+            );
+          }
+          
+          // Also decrease stock
+          return Promise.all([
+            Promise.all(reservationPromises),
+            fetch(API_BASE_URL + '/api/products/' + dbProductId + '/decrease-stock', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ quantity: qty })
+            })
+          ]).then(function(results) {
+            // Pass customerId through the chain
+            return {
+              customerId: customerId,
+              reservationResults: results[0],
+              stockResult: results[1]
+            };
+          });
+        })
+        .then(function(allData) {
+          var customerId = allData.customerId;
+          var reservationResults = allData.reservationResults;
+          var stockResult = allData.stockResult;
+          
+          return Promise.all([
+            Promise.all(reservationResults.map(function(r) { return r.json(); })),
+            stockResult.json()
+          ]).then(function(results) {
+            return {
+              customerId: customerId,
+              reservationData: results[0],
+              stockData: results[1]
+            };
+          });
+        })
+        .then(function(allData) {
+          var customerId = allData.customerId;
+          var reservationData = allData.reservationData;
+          var stockData = allData.stockData;
+          
+          if (!stockData.success) {
+            throw new Error(stockData.error || 'Failed to decrease stock');
+          }
+          
+          // Update local product stock
+          product.stock = stockData.newStock;
+          
+          // Add reservations to local array for display
+          reservationData.forEach(function(reservationResult, i) {
+            if (reservationResult.success) {
+              var reservation = {
+                id: reservationResult.id,
+                reservation_code: reservationResult.reservation_code,
+                productId: productId,
+                productName: product.name,
+                productImage: resolveProductImage(product.image),
+                price: product.price,
+                status: 'Pending',
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                customerId: customerId,
+                customerName: currentUser.name || 'Customer',
+                customerEmail: currentUser.email || '',
+                reservationDate: new Date().toISOString(),
+                expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                pickupLocation: 'Seoul Surplus Store - Main Branch',
+                receiptGenerated: false,
+                receiptNumber: null,
+                productDetails: {
+                  brand: product.brand,
+                  category: product.category,
+                  type: product.type,
+                  size: product.size,
+                  condition: product.condition,
+                  originalPrice: product.originalPrice
+                }
+              };
+              reservations.push(reservation);
+            }
+          });
+          
+          localStorage.setItem('reservations', JSON.stringify(reservations));
+          incrementDailyOrderCount(qty);
+          updateDailyLimitDisplay();
+          showToast(`${qty} × ${product.name} reserved successfully!`);
+          renderProducts();
+          renderReservations();
+          updateUserStats();
+        })
+        .catch(function(error) {
+          console.error('Error creating reservation:', error);
+          var errorMsg = error.message || 'Unknown error occurred';
+          if (errorMsg.includes('HTML') || errorMsg.includes('DOCTYPE')) {
+            errorMsg = 'Server connection error. Please make sure the server is running on ' + API_BASE_URL;
+          }
+          showToast('Error: ' + errorMsg);
+        });
+    }
+
+    // Add to cart
+    function addToCart(productId){
+      var product = products.find(p => p.id === productId);
+      if (!product || product.stock === 0) return;
+      var existing = cart.find(function(item){ return item.productId === productId; });
+      if (existing){
+        var nextQty = Math.min(product.stock, existing.quantity + 1);
+        existing.quantity = nextQty;
+      } else {
+        cart.push({ productId: product.id, name: product.name, price: product.price, image: resolveProductImage(product.image), quantity: 1 });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      showToast(product.name + ' added to cart');
+      renderCart();
+      updateUserStats();
+    }
+
+    // Remove from cart
+    function removeFromCart(productId){
+      cart = cart.filter(function(item){ return item.productId !== productId; });
+      localStorage.setItem('cart', JSON.stringify(cart));
+      showToast('Item removed from cart');
+      renderCart();
+      updateUserStats();
+    }
+
+    // Make removeFromCart globally accessible
+    window.removeFromCart = removeFromCart;
+
+    // Update cart quantity
+    function updateCartQuantity(productId, newQuantity){
+      var item = cart.find(function(item){ return item.productId === productId; });
+      if (item) {
+        if (newQuantity <= 0) {
+          removeFromCart(productId);
+        } else {
+          var product = products.find(p => p.id === productId);
+          var maxQty = product ? product.stock : 999;
+          item.quantity = Math.min(newQuantity, maxQty);
+          localStorage.setItem('cart', JSON.stringify(cart));
+          renderCart();
+        }
+      }
+    }
+
+    // Make updateCartQuantity globally accessible
+    window.updateCartQuantity = updateCartQuantity;
+
+    // Render cart table
+    function renderCart(){
+      var cartTableBody = document.getElementById('cart-table-body');
+      var cartSummary = document.getElementById('cart-summary');
+      var totalItems = document.getElementById('total-items');
+      var totalAmount = document.getElementById('total-amount');
+      
+      if (!cartTableBody || !cartSummary || !totalItems || !totalAmount) return;
+      
+      if (cart.length === 0){
+        cartTableBody.innerHTML = '<tr><td colspan="6" class="empty-cell">Your cart is empty. Browse products to add items!</td></tr>';
+        cartSummary.style.display = 'none';
+        return;
+      }
+      
+      cartTableBody.innerHTML = '';
+      var totalItemsCount = 0;
+      var totalAmountValue = 0;
+      
+      cart.forEach(function(item){
+        var row = document.createElement('tr');
+        var itemTotal = item.price * item.quantity;
+        totalItemsCount += item.quantity;
+        totalAmountValue += itemTotal;
+        
+        var itemImage = resolveProductImage(item.image);
+        row.innerHTML = `
+          <td><input type="checkbox" class="item-checkbox" data-product-id="${item.productId}"></td>
+          <td>
+            <div class="product-info">
+              <img src="${itemImage}" alt="${item.name}" class="product-thumb" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';">
+              <div>
+                <div class="product-name">${item.name}</div>
+                <div class="product-id">ID: ${item.productId}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="quantity-controls">
+              <button class="qty-btn" onclick="updateCartQuantity('${item.productId}', ${item.quantity - 1})">-</button>
+              <input type="number" class="qty-input" value="${item.quantity}" min="1" onchange="updateCartQuantity('${item.productId}', parseInt(this.value))" style="-moz-appearance: textfield;">
+              <button class="qty-btn" onclick="updateCartQuantity('${item.productId}', ${item.quantity + 1})">+</button>
+            </div>
+          </td>
+          <td class="price-cell">$${item.price}</td>
+          <td class="subtotal-cell">$${itemTotal.toFixed(2)}</td>
+          <td>
+            <button class="remove-btn" onclick="removeFromCart('${item.productId}')">Remove</button>
+          </td>
+        `;
+        
+        cartTableBody.appendChild(row);
+      });
+      
+      totalItems.textContent = totalItemsCount;
+      totalAmount.textContent = '$' + totalAmountValue.toFixed(2);
+      cartSummary.style.display = 'block';
+    }
+
+    // Select all functionality
+    function selectAllItems(selectAll){
+      var checkboxes = document.querySelectorAll('.item-checkbox');
+      checkboxes.forEach(function(checkbox){
+        checkbox.checked = selectAll;
+      });
+      document.getElementById('select-all-checkbox').checked = selectAll;
+    }
+
+    // Get selected items
+    function getSelectedItems(){
+      var selectedItems = [];
+      var checkboxes = document.querySelectorAll('.item-checkbox:checked');
+      checkboxes.forEach(function(checkbox){
+        var productId = checkbox.getAttribute('data-product-id');
+        var item = cart.find(function(cartItem){ return cartItem.productId === productId; });
+        if (item) selectedItems.push(item);
+      });
+      return selectedItems;
+    }
+
+    // Reserve selected items
+    function reserveSelectedItems(){
+      var selectedItems = getSelectedItems();
+      if (selectedItems.length === 0) {
+        showToast('Please select items to reserve');
+        return;
+      }
+      
+      // Calculate total items to reserve
+      var totalItemsToReserve = selectedItems.reduce(function(sum, item) {
+        return sum + item.quantity;
+      }, 0);
+      
+      // Check daily limit
+      if (!canMakeReservation(totalItemsToReserve)) {
+        const currentCount = getDailyOrderCount();
+        showToast(`Daily limit exceeded! You can only order ${DAILY_LIMIT} items per day. (${currentCount}/${DAILY_LIMIT} used today, trying to reserve ${totalItemsToReserve} more)`);
+        return;
+      }
+      
+      var userId = currentUser ? currentUser.id : null;
+      
+      if (!userId) {
+        showToast('Error: User ID not found. Please log in again.');
+        return;
+      }
+      
+      // First, get or create customer record
+      fetch(API_BASE_URL + '/api/customers/user/' + userId)
+        .then(function(response) {
+          // Check if response is actually JSON
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(function(text) {
+              console.error('Server returned non-JSON response:', text.substring(0, 200));
+              throw new Error('Server error: Received HTML instead of JSON. Is the server running?');
+            });
+          }
+          return response.json().then(function(data) {
+            if (!response.ok) {
+              throw new Error(data.error || 'Failed to get customer record');
+            }
+            return data.customer_id;
+          });
+        })
+        .then(function(customerId) {
+          var totalReserved = 0;
+          var reservationPromises = [];
+          var stockUpdatePromises = [];
+          
+          // Process each selected item
+          selectedItems.forEach(function(item){
+            var product = products.find(p => p.id === item.productId);
+            if (product && product.stock >= item.quantity) {
+              var dbProductId = item.productId.toString().startsWith('p') ? item.productId.toString().substring(1) : item.productId;
+              
+              // Create reservations in database
+              for (var i = 0; i < item.quantity; i++) {
+                reservationPromises.push(
+                  fetch(API_BASE_URL + '/api/reservations', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      customer_id: customerId,
+                      product_id: dbProductId,
+                      reserved_price: item.price,
+                      notes: 'Reserved by customer from cart',
+                      created_by: userId
+                    })
+                  })
+                );
+              }
+              
+              // Decrease stock
+              stockUpdatePromises.push(
+                fetch(API_BASE_URL + '/api/products/' + dbProductId + '/decrease-stock', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ quantity: item.quantity })
+                })
+                .then(function(response) {
+                  return response.json().then(function(data) {
+                    if (!response.ok) {
+                      throw new Error(data.error || 'Failed to decrease stock for ' + item.name);
+                    }
+                    return { product: product, item: item, result: data };
+                  });
+                })
+              );
+            }
+          });
+          
+          // Wait for all operations to complete
+          return Promise.all([
+            Promise.all(reservationPromises),
+            Promise.all(stockUpdatePromises)
+          ]).then(function(results) {
+            return {
+              customerId: customerId,
+              reservationResults: results[0],
+              stockResults: results[1]
+            };
+          });
+        })
+        .then(function(allResults) {
+          var customerId = allResults.customerId;
+          var reservationResults = allResults.reservationResults;
+          var stockResults = allResults.stockResults;
+          
+          // Parse reservation results
+          return Promise.all(
+            reservationResults.map(function(r) { return r.json(); })
+          ).then(function(reservationData) {
+            // Return all data needed for processing
+            return {
+              customerId: customerId,
+              reservationData: reservationData,
+              stockResults: stockResults
+            };
+          });
+        })
+        .then(function(allData) {
+          var customerId = allData.customerId;
+          var reservationData = allData.reservationData;
+          var stockResults = allData.stockResults;
+          var totalReserved = 0;
+          
+          // Update product stock
+          stockResults.forEach(function(updateResult) {
+            var product = updateResult.product;
+            var result = updateResult.result;
+            product.stock = result.newStock;
+          });
+          
+          // Create a map to track which item each reservation belongs to
+          var reservationIndex = 0;
+          selectedItems.forEach(function(item) {
+            var product = products.find(p => p.id === item.productId);
+            if (product) {
+              for (var i = 0; i < item.quantity; i++) {
+                if (reservationIndex < reservationData.length && reservationData[reservationIndex].success) {
+                  var reservationResult = reservationData[reservationIndex];
+                  var reservation = {
+                    id: reservationResult.id,
+                    reservation_code: reservationResult.reservation_code,
+                    productId: item.productId,
+                    productName: item.name,
+                    productImage: resolveProductImage(item.image),
+                    price: item.price,
+                    status: 'Pending',
+                    date: new Date().toLocaleDateString(),
+                    time: new Date().toLocaleTimeString(),
+                    customerId: customerId,
+                    customerName: currentUser.name || 'Customer',
+                    customerEmail: currentUser.email || '',
+                    reservationDate: new Date().toISOString(),
+                    expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    pickupLocation: 'Seoul Surplus Store - Main Branch',
+                    receiptGenerated: false,
+                    receiptNumber: null,
+                    productDetails: {
+                      brand: item.brand || 'Unknown',
+                      category: item.category || 'Unknown',
+                      type: item.type || 'Unknown',
+                      size: item.size || 'One Size',
+                      condition: item.condition || 'Good',
+                      originalPrice: item.originalPrice || item.price
+                    }
+                  };
+                  reservations.push(reservation);
+                  totalReserved++;
+                }
+                reservationIndex++;
+              }
+            }
+          });
+          
+          if (totalReserved > 0) {
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+            incrementDailyOrderCount(totalReserved);
+            updateDailyLimitDisplay();
+            showToast(totalReserved + ' items reserved successfully!');
+            renderReservations();
+            renderProducts();
+            updateUserStats();
+            
+            // Remove reserved items from cart
+            var selectedProductIds = selectedItems.map(function(item){ return item.productId; });
+            cart = cart.filter(function(item){ return !selectedProductIds.includes(item.productId); });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+          } else {
+            showToast('Unable to reserve selected items. Please check stock availability.');
+          }
+        })
+        .catch(function(error) {
+          console.error('Error creating reservations:', error);
+          var errorMsg = error.message || 'Unknown error occurred';
+          if (errorMsg.includes('HTML') || errorMsg.includes('DOCTYPE') || errorMsg.includes('404')) {
+            errorMsg = 'Server connection error. Please make sure the server is running and the endpoint exists.';
+          }
+          showToast('Error: ' + errorMsg);
+        });
+    }
+
+    // Cancel user reservation
+    window.cancelUserReservation = function(reservationId){
+      var reservation = reservations.find(r => r.id === reservationId);
+      if (reservation) {
+        if (confirm('Are you sure you want to cancel this reservation?')) {
+          reservation.status = 'Cancelled';
+          localStorage.setItem('reservations', JSON.stringify(reservations));
+          renderReservations();
+          alert('Reservation cancelled successfully!');
+        }
+      }
+    };
+
+    // Event delegation for action buttons
+    document.addEventListener('click', function(e){
+      if (e.target.classList.contains('reserve-btn')){
+        e.preventDefault();
+        var productId = e.target.getAttribute('data-id');
+        reserveProduct(productId);
+      } else if (e.target.classList.contains('add-cart-btn')){
+        e.preventDefault();
+        var productId = e.target.getAttribute('data-id');
+        addToCart(productId);
+      }
+    });
+
+    // Reload reservations from localStorage
+    function reloadReservations() {
+      reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+      console.log('Reloaded reservations:', reservations);
+      renderReservations();
+    }
+
+    // Render reservations
+    function renderReservations(){
+      var reservationsList = document.getElementById('reservations-list');
+      if (!reservationsList) {
+        console.log('Reservations list element not found');
+        return;
+      }
+      
+      console.log('Current reservations:', reservations);
+      
+      if (reservations.length === 0){
+        reservationsList.innerHTML = '<div class="empty">No reservations yet. Browse products to make a reservation!</div>';
+        return;
+      }
+      
+      reservationsList.innerHTML = '';
+      
+      reservations.forEach(function(reservation){
+        console.log('Rendering reservation:', reservation);
+        var reservationCard = document.createElement('div');
+        reservationCard.className = 'reservation-card';
+        
+        var statusClass = reservation.status.toLowerCase().replace(' ', '-');
+        // Safe defaults for legacy reservations that may not include productDetails
+        var details = reservation.productDetails || {};
+        var brand = details.brand || '—';
+        var category = details.category || '—';
+        var type = details.type || '—';
+        var size = details.size || '—';
+        var conditionText = details.condition || '—';
+        var originalPrice = (typeof details.originalPrice === 'number') ? details.originalPrice : reservation.price;
+        var pickupDeadline = reservation.pickupExpiration ? new Date(reservation.pickupExpiration).toLocaleDateString() : '—';
+        
+        reservationCard.innerHTML = `
+          <div class="reservation-image">
+            <img src="${reservation.productImage}" alt="${reservation.productName}">
+          </div>
+          <div class="reservation-details">
+            <h3>${reservation.productName}</h3>
+            <p class="reservation-price">$${reservation.price}</p>
+            <p class="reservation-date">Reserved: ${reservation.date} at ${reservation.time}</p>
+            <span class="reservation-status ${statusClass}">${reservation.status}</span>
+            ${reservation.status === 'Declined' ? '<p style="color: #dc2626; margin-top: 8px; font-weight: 600;">⚠️ This reservation has been declined by the admin.</p>' : ''}
+            
+            ${reservation.status === 'Confirmed' && reservation.receiptGenerated ? `
+              <div class="receipt-info">
+                <div class="receipt-header">
+                  <h4>📋 Receipt #${reservation.receiptNumber}</h4>
+                  <span class="pickup-ready">✅ Ready for Pickup</span>
+                </div>
+                <div class="receipt-details">
+                  <p><strong>Pickup Location:</strong> ${reservation.pickupLocation || '—'}</p>
+                  <p><strong>Pickup Deadline:</strong> ${pickupDeadline}</p>
+                  <p><strong>Total Amount:</strong> $${reservation.price}</p>
+                </div>
+                <div class="product-specs">
+                  <h5>Product Specifications:</h5>
+                  <ul>
+                    <li><strong>Brand:</strong> ${brand}</li>
+                    <li><strong>Category:</strong> ${category}</li>
+                    <li><strong>Type:</strong> ${type}</li>
+                    <li><strong>Size:</strong> ${size}</li>
+                    <li><strong>Condition:</strong> ${conditionText}</li>
+                    <li><strong>Original Price:</strong> $${originalPrice}</li>
+                  </ul>
+                </div>
+                <div class="pickup-instructions">
+                  <p><strong>Pickup Instructions:</strong></p>
+                  <p>Please bring a valid ID and this receipt number when picking up your item. Items must be picked up within 3 days of confirmation.</p>
+                </div>
+              </div>
+            ` : ''}
+            
+            ${(reservation.status === 'Pending' || reservation.status === 'Confirmed') ? 
+              '<button class="btn-small btn-warning cancel-reservation-btn" onclick="cancelUserReservation(\'' + reservation.id + '\')" style="margin-top: 8px;">Cancel Reservation</button>' : 
+              ''
+            }
+          </div>
+        `;
+        
+        reservationsList.appendChild(reservationCard);
+      });
+    }
+
+    // Cancel user reservation
+    window.cancelUserReservation = function(reservationId){
+      var reservation = reservations.find(r => r.id === reservationId);
+      if (reservation) {
+        if (confirm('Are you sure you want to cancel this reservation?')) {
+          reservation.status = 'Cancelled';
+          localStorage.setItem('reservations', JSON.stringify(reservations));
+          renderReservations();
+          alert('Reservation cancelled successfully!');
+        }
+      }
+    };
+
+    // Render Home sections (Featured & New Arrivals)
+    function renderHomeSections(categoryFilter){
+      var featuredGrid = document.getElementById('featured-grid');
+      var newArrivalsGrid = document.getElementById('new-arrivals-grid');
+      if (!featuredGrid || !newArrivalsGrid) return;
+
+      // Filter products by category if specified
+      var filteredProducts = products;
+      if (categoryFilter) {
+        filteredProducts = products.filter(function(p){ return p.category === categoryFilter; });
+      }
+
+      var byDiscount = filteredProducts
+        .slice()
+        .sort(function(a,b){ return (b.originalPrice - b.price) - (a.originalPrice - a.price); })
+        .slice(0, 4);
+
+      var newArrivals = filteredProducts.slice(-4);
+
+      function cardHtml(product){
+        var discount = Math.round((1 - product.price / product.originalPrice) * 100);
+        var stockInfo = getStockLevel(product.stock);
+        var productImage = resolveProductImage(product.image);
+        return `
+          <div class="product-card">
+            <img src="${productImage}" alt="${product.name}" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';">
+            <div class="info">
+              <p class="name">${product.name}</p>
+              <p class="brand">${product.brand}</p>
+              <div class="stock-indicator">
+                <div class="stock-header">
+                  <span class="stock-badge stock-${stockInfo.level}">${stockInfo.label}</span>
+                  <span class="stock-count">${product.stock} available</span>
+                </div>
+                <div class="stock-progress-bar">
+                  <div class="stock-progress-fill" style="width: ${stockInfo.percentage}%; background-color: ${stockInfo.color};"></div>
+                </div>
+              </div>
+              <p class="price">$${product.price} <span class="old-price">$${product.originalPrice}</span></p>
+              <p class="discount">-${discount}%</p>
+              <div class="product-actions">
+                <button class="btn btn-outline add-cart-btn" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>Add to Cart</button>
+                <button class="btn reserve-btn" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>${product.stock === 0 ? 'Out of Stock' : 'Reserve'}</button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      featuredGrid.innerHTML = byDiscount.map(cardHtml).join('');
+      newArrivalsGrid.innerHTML = newArrivals.map(cardHtml).join('');
+    }
+
+    // Category filter from home page
+    function onCategoryClick(e){
+      e.preventDefault();
+      var btn = e.currentTarget;
+      document.querySelectorAll('.cat-card').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      // Don't redirect to products page - stay on home
+      // Show featured products (top discounted products) when any category is clicked
+      renderHomeSections();
+    }
+    
+    Array.from(document.querySelectorAll('.cat-card')).forEach(function(btn){ 
+      btn.addEventListener('click', onCategoryClick); 
+    });
+
+    // Logout
+    var logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn){ 
+      logoutBtn.addEventListener('click', handleLogout); 
+    }
+
+    // Sidebar logout button handler
+    var sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+    if (sidebarLogoutBtn) {
+      sidebarLogoutBtn.addEventListener('click', handleLogout);
+    }
+
+    // Cart event listeners
+    document.getElementById('select-all-btn').addEventListener('click', function(){
+      selectAllItems(true);
+    });
+
+    document.getElementById('deselect-all-btn').addEventListener('click', function(){
+      selectAllItems(false);
+    });
+
+    document.getElementById('reserve-selected-btn').addEventListener('click', function(){
+      reserveSelectedItems();
+    });
+
+    document.getElementById('select-all-checkbox').addEventListener('change', function(){
+      selectAllItems(this.checked);
+    });
+
+    // Initialize
+    renderProducts();
+    renderHomeSections();
+    renderCart();
+    updateDailyLimitDisplay();
+    loadUserReservationsFromServer(); // Load from database first
+    renderReservations();
+    checkForNewConfirmations();
+    updateUserStats();
+    
+    // ==================== REAL-TIME UPDATES (WebSocket) ====================
+    var socket = null;
+    var API_BASE_URL_WS = (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    
+    // Initialize WebSocket connection
+    function initWebSocket() {
+      try {
+        socket = io(API_BASE_URL_WS, {
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionAttempts: 5
+        });
+        
+        socket.on('connect', function() {
+          console.log('🔌 Connected to real-time server');
+          // Join customer room
+          if (currentUser && currentUser.id) {
+            socket.emit('join-room', 'customer');
+            socket.emit('join-room', 'customer:' + currentUser.id);
+          }
+        });
+        
+        socket.on('disconnect', function() {
+          console.log('🔌 Disconnected from real-time server');
+        });
+        
+        socket.on('connect_error', function(error) {
+          console.warn('⚠️ WebSocket connection error:', error);
+        });
+        
+        // Listen for reservation updates
+        socket.on('reservations:updated', function() {
+          console.log('📋 Reservations updated - refreshing...');
+          loadUserReservationsFromServer();
+        });
+        
+        socket.on('reservation:status-changed', function(data) {
+          console.log('🔄 Reservation status changed:', data);
+          // Check if this reservation belongs to current user
+          if (data.created_by && currentUser && String(data.created_by) === String(currentUser.id)) {
+            loadUserReservationsFromServer();
+            // Show notification
+            var statusMessages = {
+              'Confirmed': 'Your reservation has been confirmed!',
+              'Declined': 'Your reservation has been declined.',
+              'Cancelled': 'Your reservation has been cancelled.'
+            };
+            var message = statusMessages[data.status] || 'Your reservation status has been updated.';
+            showNotification(message, data.status === 'Confirmed' ? 'success' : 'warning');
+          }
+        });
+        
+        // Listen for product updates (for availability changes)
+        socket.on('inventory:updated', function() {
+          console.log('📦 Inventory updated - refreshing products...');
+          loadProductsFromServer();
+        });
+        
+        socket.on('product:stock-changed', function(data) {
+          console.log('📊 Product stock changed:', data);
+          loadProductsFromServer();
+        });
+        
+        socket.on('product:created', function(data) {
+          console.log('➕ New product created:', data);
+          loadProductsFromServer();
+        });
+        
+        socket.on('product:updated', function(data) {
+          console.log('✏️ Product updated:', data);
+          loadProductsFromServer();
+        });
+        
+      } catch (error) {
+        console.error('Failed to initialize WebSocket:', error);
+      }
+    }
+    
+    // Initialize WebSocket on page load
+    if (typeof io !== 'undefined') {
+      initWebSocket();
+    } else {
+      console.warn('⚠️ Socket.io not loaded, real-time updates disabled');
+    }
+    
+    // Enhanced polling with reduced intervals (fallback if WebSocket fails)
+    // Auto-refresh reservations every 5 seconds (reduced from 10)
+    setInterval(function() {
+      loadUserReservationsFromServer();
+    }, 5000);
+    
+    // Auto-refresh products every 10 seconds
+    setInterval(function() {
+      if (document.getElementById('products') && document.getElementById('products').classList.contains('active')) {
+        renderProducts();
+      }
+    }, 10000);
+    
+    // Also refresh when user focuses the window
+    window.addEventListener('focus', function() {
+      loadUserReservationsFromServer();
+      renderProducts();
+    });
+
+    // Live sync: update reservations and notifications when admin updates localStorage
+    window.addEventListener('storage', function(e){
+      if (!e) return;
+      try {
+        if (e.key === 'reservations') {
+          reloadReservations();
+          checkForNewConfirmations();
+          updateUserStats();
+        }
+        if (e.key === 'cart') {
+          updateUserStats();
+        }
+      } catch(err) {
+        console.warn('Storage sync error:', err);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

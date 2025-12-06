@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Korean Surplus</title>
+  <link rel="stylesheet" href="login.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="auth">
+    <div class="brand">
+      <h1>Korean Surplus</h1>
+      <p>Your source for authentic Korean surplus.</p>
+    </div>
+
+    <section class="login-panel">
+      <div class="login-header">
+        <h2>Admin Login</h2>
+        <div class="admin-badge">
+          <span class="shield-icon">🛡️</span>
+          <span class="admin-text">Admin Portal</span>
+        </div>
+      </div>
+      
+      <p class="login-description">Enter your admin credentials to access the dashboard.</p>
+      
+  <form class="login-form" id="login-form" novalidate>
+        <div id="login-alert" class="form-alert" role="alert" aria-live="polite" hidden></div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="admin@seoul.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-input-wrapper">
+            <input id="password" type="password" placeholder="••••••" required>
+            <button type="button" class="password-toggle" id="toggle-password" aria-label="Toggle password visibility">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg class="eye-icon eye-icon-hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="signin-btn">Sign In</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    (function(){
+      var auth = window.KSurplusAuth;
+      if (!auth) return;
+      auth.bootstrap();
+
+      var form = document.getElementById('login-form');
+      var alertBox = document.getElementById('login-alert');
+      var submitBtn = document.querySelector('.signin-btn');
+
+      function showAlert(message, isError){
+        if (!alertBox) return;
+        alertBox.textContent = message;
+        alertBox.hidden = !message;
+        alertBox.classList.toggle('error', !!isError);
+        alertBox.classList.toggle('success', !isError);
+      }
+
+      function redirectForSession(session){
+        if (!session || !session.user) return;
+        // Always redirect to admin page since we only have admin users
+        window.location.href = 'admin.html';
+      }
+
+      var existing = auth.getSession && auth.getSession();
+      if (existing && existing.user) {
+        redirectForSession(existing);
+        return;
+      }
+
+      function isServerAdminRole(role){
+        var normalized = String(role || '').toLowerCase();
+        return normalized === 'admin' || normalized === 'manager' || normalized === 'superadmin' || normalized === 'super_admin';
+      }
+
+      if (form) {
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          showAlert('', false);
+          var email = (document.getElementById('email').value || '').trim();
+          var password = (document.getElementById('password').value || '').trim();
+          if (!email || !password) {
+            showAlert('Please enter both email and password.', true);
+            return;
+          }
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in...';
+          }
+
+          fetch('http://localhost:3000/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email, password: password })
+          })
+          .then(function(response){
+            return response.json().then(function(payload){
+              if (!response.ok) {
+                throw new Error(payload.error || 'Unable to login. Please try again.');
+              }
+              return payload;
+            });
+          })
+          .then(function(result){
+            var serverUser = result.user;
+            if (!serverUser) {
+              throw new Error('Invalid response from server.');
+            }
+            var serverIsAdmin = isServerAdminRole(serverUser.role);
+            
+            // Only allow admin and super admin users
+            if (!serverIsAdmin) {
+              throw new Error('Access denied. This portal is restricted to admin accounts only.');
+            }
+
+            var session = null;
+            if (auth.syncServerSession) {
+              session = auth.syncServerSession(serverUser, {
+                type: 'admin'
+              });
+            }
+
+            showAlert('Login successful. Redirecting…', false);
+            setTimeout(function(){
+              redirectForSession(session || { user: { type: 'admin' } });
+            }, 600);
+          })
+          .catch(function(err){
+            showAlert(err.message || 'Unable to login. Please try again.', true);
+          })
+          .finally(function(){
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Sign In';
+            }
+          });
+        });
+      }
+
+      // Password toggle functionality
+      var togglePassword = document.getElementById('toggle-password');
+      var passwordInput = document.getElementById('password');
+
+      if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+          var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          var eyeIcon = togglePassword.querySelector('.eye-icon:not(.eye-icon-hidden)');
+          var eyeIconHidden = togglePassword.querySelector('.eye-icon-hidden');
+          if (type === 'password') {
+            if (eyeIcon) eyeIcon.style.display = 'block';
+            if (eyeIconHidden) eyeIconHidden.style.display = 'none';
+          } else {
+            if (eyeIcon) eyeIcon.style.display = 'none';
+            if (eyeIconHidden) eyeIconHidden.style.display = 'block';
+          }
+        });
+      }
+      
+    })();
+  </script>
+</body>
+</html>
+
+

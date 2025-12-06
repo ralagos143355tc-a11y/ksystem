@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Korean Surplus</title>
+  <link rel="stylesheet" href="login.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="auth">
+    <div class="brand">
+      <h1>Korean Surplus</h1>
+      <p>Your source for authentic Korean surplus.</p>
+    </div>
+
+    <section class="login-panel">
+      <div class="login-header">
+        <h2>Create Account</h2>
+      </div>
+      
+      <p class="login-description">Sign up to start shopping for authentic Korean products.</p>
+      
+      <form class="login-form" id="signup-form" novalidate>
+        <div id="signup-alert" class="form-alert" role="alert" aria-live="polite" hidden></div>
+        
+        <div class="form-group">
+          <label for="full-name">Full Name</label>
+          <input id="full-name" type="text" placeholder="John Doe" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="signup-email">Email</label>
+          <input id="signup-email" type="email" placeholder="customer@seoul.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input id="signup-password" type="password" placeholder="••••••" required minlength="6">
+          <small class="form-hint">Must be at least 6 characters</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input id="confirm-password" type="password" placeholder="••••••" required>
+        </div>
+        
+        <button type="submit" class="signin-btn" id="signup-btn">Create Account</button>
+      </form>
+      
+      <p class="signup-link">Already have an account? <a href="login.html">Sign in</a></p>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    (function(){
+      var auth = window.KSurplusAuth;
+      if (!auth) {
+        console.error('Auth module not loaded');
+        return;
+      }
+      auth.bootstrap();
+
+      var form = document.getElementById('signup-form');
+      var alertBox = document.getElementById('signup-alert');
+      var submitBtn = document.getElementById('signup-btn');
+
+      function showAlert(message, isError){
+        if (!alertBox) return;
+        alertBox.textContent = message;
+        alertBox.hidden = !message;
+        alertBox.classList.toggle('error', !!isError);
+        alertBox.classList.toggle('success', !isError);
+      }
+
+      function validateEmail(email) {
+        var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
+
+      function validatePassword(password) {
+        return password && password.length >= 6;
+      }
+
+      function redirectForSession(session){
+        if (!session || !session.user) return;
+        var destination = session.user.type === 'admin' ? 'admin.html' : 'user.html';
+        window.location.href = destination;
+      }
+
+      // Check if user is already logged in
+      var existing = auth.getSession && auth.getSession();
+      if (existing && existing.user) {
+        redirectForSession(existing);
+        return;
+      }
+
+      if (form) {
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          showAlert('', false);
+          
+          var name = (document.getElementById('full-name').value || '').trim();
+          var email = (document.getElementById('signup-email').value || '').trim();
+          var password = (document.getElementById('signup-password').value || '').trim();
+          var confirmPassword = (document.getElementById('confirm-password').value || '').trim();
+
+          // Validation
+          if (!name) {
+            showAlert('Please enter your full name.', true);
+            return;
+          }
+
+          if (!email) {
+            showAlert('Please enter your email address.', true);
+            return;
+          }
+
+          if (!validateEmail(email)) {
+            showAlert('Please enter a valid email address.', true);
+            return;
+          }
+
+          if (!password) {
+            showAlert('Please enter a password.', true);
+            return;
+          }
+
+          if (!validatePassword(password)) {
+            showAlert('Password must be at least 6 characters long.', true);
+            return;
+          }
+
+          if (password !== confirmPassword) {
+            showAlert('Passwords do not match. Please try again.', true);
+            return;
+          }
+
+          submitBtn && (submitBtn.disabled = true);
+          submitBtn && (submitBtn.textContent = 'Creating Account...');
+
+          // Call API to create account in database
+          fetch('http://localhost:3000/api/auth/signup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: name,
+              email: email,
+              password: password,
+              isAdmin: false
+            })
+          })
+          .then(function(response) {
+            return response.json().then(function(data) {
+              if (!response.ok) {
+                throw new Error(data.error || 'Failed to create account');
+              }
+              return data;
+            });
+          })
+          .then(function(result) {
+            showAlert('Account created successfully! Redirecting to login...', false);
+            
+            setTimeout(function(){
+              window.location.href = 'login.html';
+            }, 1500);
+          })
+          .catch(function(err) {
+            showAlert(err.message || 'Unable to create account. Please try again.', true);
+          })
+          .finally(function(){
+            submitBtn && (submitBtn.disabled = false);
+            submitBtn && (submitBtn.textContent = 'Create Account');
+          });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
+
