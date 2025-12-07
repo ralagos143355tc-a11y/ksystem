@@ -385,12 +385,27 @@
         return;
       }
       
-      // Get API base URL from admin page's global variable
-      var API_BASE_URL = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) 
-        ? API_BASE_URL.replace(/\/+$/, '')
-        : (window.APP_CONFIG && window.APP_CONFIG.baseUrl) 
-          ? window.APP_CONFIG.baseUrl.replace(/\/+$/, '')
-          : (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+      // Get API base URL - check multiple sources
+      var API_BASE_URL = null;
+      
+      // 1. Check if API_BASE_URL is defined in admin.js scope (from admin.html)
+      if (typeof window !== 'undefined' && window.API_BASE_URL) {
+        API_BASE_URL = window.API_BASE_URL;
+      }
+      // 2. Check config.js
+      else if (window.APP_CONFIG && window.APP_CONFIG.baseUrl) {
+        API_BASE_URL = window.APP_CONFIG.baseUrl;
+      }
+      // 3. Check window variable
+      else if (window.APP_API_BASE_URL) {
+        API_BASE_URL = window.APP_API_BASE_URL;
+      }
+      // 4. Fallback
+      else {
+        API_BASE_URL = 'http://localhost:3000';
+      }
+      
+      API_BASE_URL = API_BASE_URL.replace(/\/+$/, '');
       
       // Disable submit button
       var submitBtn = newAccountForm.querySelector('button[type="submit"]');
