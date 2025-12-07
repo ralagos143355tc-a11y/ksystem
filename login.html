@@ -109,10 +109,25 @@
           }
 
           // Get API base URL from config
-          var API_BASE_URL = window.APP_CONFIG ? window.APP_CONFIG.baseUrl : 'http://localhost:3000';
+          var API_BASE_URL = window.APP_CONFIG ? window.APP_CONFIG.baseUrl : null;
           
-          if (!API_BASE_URL || !window.APP_CONFIG || !window.APP_CONFIG.isConfigured()) {
-            showAlert('Backend server not configured. Please deploy the backend server or set APP_API_BASE_URL.', true);
+          // Fallback: try to read from meta tag directly
+          if (!API_BASE_URL) {
+            var metaTag = document.querySelector('meta[name="api-base-url"]');
+            if (metaTag && metaTag.content) {
+              API_BASE_URL = metaTag.content.trim().replace(/\/+$/, '');
+            }
+          }
+          
+          // Final fallback for development
+          if (!API_BASE_URL) {
+            API_BASE_URL = 'http://localhost:3000';
+          }
+          
+          console.log('[Login] Using API URL:', API_BASE_URL);
+          
+          if (!API_BASE_URL) {
+            showAlert('Backend server not configured. Please deploy the backend server.', true);
             if (submitBtn) {
               submitBtn.disabled = false;
               submitBtn.textContent = 'Sign In';

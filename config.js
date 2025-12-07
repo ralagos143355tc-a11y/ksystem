@@ -19,8 +19,13 @@
     
     // 3. Check for meta tag (for Vercel/static hosting)
     var metaTag = document.querySelector('meta[name="api-base-url"]');
-    if (metaTag && metaTag.content) {
-      return metaTag.content.replace(/\/+$/, '');
+    if (metaTag && metaTag.content && metaTag.content.trim()) {
+      var url = metaTag.content.trim().replace(/\/+$/, '');
+      // Ensure URL has protocol
+      if (url && !url.match(/^https?:\/\//)) {
+        url = 'https://' + url;
+      }
+      return url;
     }
     
     // 4. For production (Vercel), you need to set the backend URL
@@ -29,8 +34,16 @@
     return ''; // Empty means backend is not configured
   };
   
+  var baseUrl = getApiBaseUrl();
+  
+  // Debug logging (remove in production if needed)
+  if (typeof console !== 'undefined') {
+    console.log('[API Config] Base URL:', baseUrl);
+    console.log('[API Config] Hostname:', window.location.hostname);
+  }
+  
   var API_CONFIG = {
-    baseUrl: getApiBaseUrl(),
+    baseUrl: baseUrl,
     isConfigured: function() {
       return !!this.baseUrl;
     },
