@@ -56,5 +56,15 @@
   
   // Make it globally available
   window.APP_CONFIG = API_CONFIG;
+  
+  // Helper function to get API URL (for use in other scripts)
+  window.getApiBaseUrl = function() {
+    return API_CONFIG.baseUrl || '';
+  };
+  
+  // Helper function to build full API URL
+  window.getApiUrl = function(path) {
+    return API_CONFIG.getUrl(path);
+  };
 })(window);
 
