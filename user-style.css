@@ -13,6 +13,64 @@
     color: #111827;
   }
   
+  /* Mobile Menu Toggle Button - Hidden by default */
+  .mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1001;
+    background: #1e293b;
+    border: none;
+    border-radius: 8px;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .mobile-menu-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: white;
+    margin: 5px auto;
+    transition: all 0.3s;
+  }
+  
+  .mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(7px, 7px);
+  }
+  
+  .mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+  }
+  
+  /* Sidebar Overlay - Hidden by default */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+  
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
   /* Sidebar */
   .sidebar {
     width: 240px;
@@ -22,7 +80,8 @@
     position: fixed;
     padding: 24px 20px;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
-    z-index: 100;
+    z-index: 1000;
+    transition: transform 0.3s ease;
   }
   
   .sidebar .logo {
@@ -1133,19 +1192,108 @@
     }
   }
 
-  @media (max-width: 480px) {
+  /* Tablet Responsive */
+  @media (max-width: 768px) {
     .sidebar {
-      width: 100%;
-      position: relative;
-      min-height: auto;
+      width: 240px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .sidebar.open {
+      transform: translateX(0);
     }
     
     .content {
       margin-left: 0;
+      padding: 24px 16px;
+      padding-top: 80px; /* Space for mobile menu button */
+    }
+    
+    /* Mobile Menu Toggle Button */
+    .mobile-menu-toggle {
+      display: block;
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1001;
+      background: #1e293b;
+      border: none;
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      padding: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mobile-menu-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: white;
+      margin: 5px auto;
+      transition: all 0.3s;
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(1) {
+      transform: rotate(45deg) translate(7px, 7px);
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+    
+    /* Sidebar Overlay */
+    .sidebar-overlay {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+    
+    .sidebar-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .product-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .hero {
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+
+  /* Mobile Phones */
+  @media (max-width: 480px) {
+    .content {
+      padding: 16px 12px;
+      padding-top: 70px;
+    }
+    
+    .sidebar {
+      width: 280px;
     }
     
     .product-grid {
       grid-template-columns: 1fr;
+      gap: 12px;
     }
 
     .stock-header {
@@ -1156,6 +1304,60 @@
 
     .stock-count {
       font-size: 0.7rem;
+    }
+    
+    .quick-stats {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .filter-controls {
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .filter-controls select,
+    .filter-controls input {
+      width: 100%;
+      min-width: 100%;
+    }
+    
+    .reservation-card {
+      flex-direction: column;
+      padding: 16px;
+    }
+    
+    .reservation-image {
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 12px;
+    }
+    
+    .cart-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .cart-item-image {
+      width: 100%;
+      max-width: 200px;
+      margin: 0 auto;
+    }
+  }
+  
+  /* Very Small Phones */
+  @media (max-width: 360px) {
+    .content {
+      padding: 12px 8px;
+      padding-top: 65px;
+    }
+    
+    .mobile-menu-toggle {
+      width: 44px;
+      height: 44px;
+      top: 12px;
+      left: 12px;
     }
   }
   
