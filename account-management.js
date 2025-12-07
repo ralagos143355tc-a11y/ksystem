@@ -380,25 +380,80 @@
         alert('Passwords do not match!');
         return;
       }
-      try {
-        auth.createUser({
-          id: 'user_' + Date.now(),
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+      }
+      
+      // Get API base URL from admin page's global variable
+      var API_BASE_URL = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) 
+        ? API_BASE_URL.replace(/\/+$/, '')
+        : (window.APP_CONFIG && window.APP_CONFIG.baseUrl) 
+          ? window.APP_CONFIG.baseUrl.replace(/\/+$/, '')
+          : (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+      
+      // Disable submit button
+      var submitBtn = newAccountForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        var originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Creating...';
+      }
+      
+      // Create account in database via API
+      fetch(API_BASE_URL + '/api/auth/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           name: name,
           email: email,
           password: password,
-          role: role,
-          type: 'admin'
+          role: role
+        })
+      })
+      .then(function(response) {
+        return response.json().then(function(data) {
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to create account');
+          }
+          return data;
         });
+      })
+      .then(function(result) {
+        // Also create in localStorage for frontend compatibility
+        try {
+          auth.createUser({
+            id: String(result.user.id),
+            name: name,
+            email: email,
+            password: password,
+            role: role,
+            type: 'admin'
+          });
+        } catch(e) {
+          console.warn('Could not create user in localStorage:', e);
+        }
+        
         auth.recordActivity(session.user.id, 'Created new ' + getRoleLabel(role) + ' account: ' + name);
-        alert('Account created successfully.');
+        alert('Account created successfully!');
         newAccountForm.reset();
         closeSignupModalFunc();
         renderAdminTable();
         renderRolesMatrix();
         updateActivityFeed();
-      } catch(err) {
-        alert(err.message || 'Unable to create account.');
-      }
+      })
+      .catch(function(err) {
+        alert(err.message || 'Unable to create account. Please try again.');
+        console.error('Create account error:', err);
+      })
+      .finally(function() {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText || 'Create Account';
+        }
+      });
     });
   }
 

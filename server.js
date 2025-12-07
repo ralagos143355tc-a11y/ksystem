@@ -295,6 +295,105 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
+// Admin create user endpoint (for account management)
+app.post('/api/auth/create-user', async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if email already exists
+    const existingUsers = await query('SELECT id FROM users WHERE email = ?', [normalizedEmail]);
+    if (existingUsers.length > 0) {
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+
+    // Generate username from email (take part before @)
+    let username = normalizedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // Check if username already exists
+    const existingUsernames = await query('SELECT id FROM users WHERE username = ?', [username]);
+    if (existingUsernames.length > 0) {
+      // If username exists, append a number
+      let uniqueUsername = username;
+      let counter = 1;
+      while (true) {
+        uniqueUsername = `${username}${counter}`;
+        const check = await query('SELECT id FROM users WHERE username = ?', [uniqueUsername]);
+        if (check.length === 0) break;
+        counter++;
+      }
+      username = uniqueUsername;
+    }
+
+    // Determine role - use provided role or default to 'regular'
+    const roleName = role || 'regular';
+    let roleId;
+    try {
+      roleId = await getRoleIdByName(roleName);
+    } catch (error) {
+      if (error.message === 'roles_not_configured') {
+        return res.status(500).json({ error: 'No roles configured in database. Please set up roles first.' });
+      }
+      throw error;
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const password_hash = await bcrypt.hash(password, saltRounds);
+
+    // Insert user
+    const userResult = await query(
+      `INSERT INTO users (username, email, password_hash, role_id, status) 
+       VALUES (?, ?, ?, ?, 'active')`,
+      [username, normalizedEmail, password_hash, roleId]
+    );
+
+    const userId = userResult.insertId;
+
+    // Insert user profile
+    await query(
+      `INSERT INTO user_profiles (user_id, full_name, phone, timezone, pref_low_stock, pref_resv) 
+       VALUES (?, ?, ?, ?, 1, 1)`,
+      [userId, name, null, 'Asia/Seoul']
+    );
+
+    // Log activity
+    await query(
+      `INSERT INTO activity_log (user_id, action, target_type, target_id) 
+       VALUES (?, ?, ?, ?)`,
+      [userId, 'Account created by admin', 'user', userId.toString()]
+    );
+
+    // Get the created user with role info
+    const newUsers = await query(
+      'SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?',
+      [userId]
+    );
+
+    const newUser = newUsers[0];
+    const { password_hash: _, ...userData } = newUser;
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully',
+      user: userData
+    });
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
 // Get session/user info
 app.get('/api/auth/session', async (req, res) => {
   try {
