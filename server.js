@@ -1722,9 +1722,11 @@ function broadcastUpdate(event, data, room = null) {
 }
 
 // Start server
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 API endpoints available at http://localhost:${PORT}/api`);
+// Use 0.0.0.0 to bind to all network interfaces (required for Railway/cloud hosting)
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+  console.log(`📊 API endpoints available at http://${HOST}:${PORT}/api`);
   console.log(`🔌 WebSocket server ready for real-time updates`);
 });
 
