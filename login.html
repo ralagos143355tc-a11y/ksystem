@@ -112,23 +112,39 @@
             submitBtn.textContent = 'Signing in...';
           }
 
-          // Get API base URL from config
-          var API_BASE_URL = window.APP_CONFIG ? window.APP_CONFIG.baseUrl : null;
+          // Get API base URL - try multiple sources
+          var API_BASE_URL = null;
           
-          // Fallback: try to read from meta tag directly
-          if (!API_BASE_URL) {
+          // 1. Try window.APP_API_BASE_URL (set directly in HTML)
+          if (window.APP_API_BASE_URL) {
+            API_BASE_URL = window.APP_API_BASE_URL.replace(/\/+$/, '');
+          }
+          // 2. Try config.js
+          else if (window.APP_CONFIG && window.APP_CONFIG.baseUrl) {
+            API_BASE_URL = window.APP_CONFIG.baseUrl.replace(/\/+$/, '');
+          }
+          // 3. Try meta tag
+          else {
             var metaTag = document.querySelector('meta[name="api-base-url"]');
             if (metaTag && metaTag.content) {
               API_BASE_URL = metaTag.content.trim().replace(/\/+$/, '');
             }
           }
           
-          // Final fallback for development
+          // 4. Final fallback
           if (!API_BASE_URL) {
-            API_BASE_URL = 'http://localhost:3000';
+            var hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+              API_BASE_URL = 'http://localhost:3000';
+            } else {
+              // Production fallback - hardcoded Railway URL
+              API_BASE_URL = 'https://ksystem-production.up.railway.app';
+            }
           }
           
           console.log('[Login] Using API URL:', API_BASE_URL);
+          console.log('[Login] Config available:', !!window.APP_CONFIG);
+          console.log('[Login] Direct URL set:', !!window.APP_API_BASE_URL);
           
           if (!API_BASE_URL) {
             showAlert('Backend server not configured. Please deploy the backend server.', true);
