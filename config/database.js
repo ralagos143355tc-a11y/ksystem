@@ -1,26 +1,42 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
-// Database configuration from environment variables
-// Force IPv4 by using 127.0.0.1 instead of localhost
-let dbHost = process.env.DB_HOST || '127.0.0.1';
-// Convert localhost to 127.0.0.1 to avoid IPv6 issues
-if (dbHost === 'localhost') {
-  dbHost = '127.0.0.1';
-}
+// Parse database configuration from environment variables
+// Supports both DATABASE_URL (connection string) and individual variables
+let dbConfig = {};
 
-const dbConfig = {
-  host: dbHost,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'seoul_surplus',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  // Force IPv4
-  family: 4
-};
+if (process.env.DATABASE_URL) {
+  // Parse MySQL connection string: mysql://user:password@host:port/database
+  const url = new URL(process.env.DATABASE_URL);
+  dbConfig = {
+    host: url.hostname,
+    user: url.username,
+    password: url.password,
+    database: url.pathname.slice(1), // Remove leading '/'
+    port: parseInt(url.port || '3306', 10),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  };
+} else {
+  // Use individual environment variables
+  let dbHost = process.env.DB_HOST || '127.0.0.1';
+  // Convert localhost to 127.0.0.1 to avoid IPv6 issues
+  if (dbHost === 'localhost') {
+    dbHost = '127.0.0.1';
+  }
+
+  dbConfig = {
+    host: dbHost,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'seoul_surplus',
+    port: parseInt(process.env.DB_PORT || '3306', 10),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  };
+}
 
 // Create connection pool
 const pool = mysql.createPool(dbConfig);
