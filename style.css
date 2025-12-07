@@ -2725,7 +2725,7 @@ input[type="number"]::-webkit-inner-spin-button {
 #signup-form-modal {
     justify-content: center;
     align-items: center;
-    padding: 0;
+    padding: 20px;
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
 }
@@ -2743,14 +2743,6 @@ input[type="number"]::-webkit-inner-spin-button {
     display: flex;
     flex-direction: column;
     animation: modalFadeIn 0.3s ease-out;
-}
-
-#signup-form-modal .modal-header {
-    padding: 0;
-}
-
-#signup-form-modal .modal-body {
-    padding: 0;
 }
 
 /* Password Input with Eye Icon */
@@ -2836,8 +2828,8 @@ input[type="number"]::-webkit-inner-spin-button {
 /* Signup Modal Responsive */
 @media (max-width: 768px) {
     #signup-form-modal {
-        padding: 0;
-        padding-top: 0;
+        padding: 20px;
+        padding-top: 40px;
         justify-content: flex-start;
         align-items: center;
     }
@@ -2850,7 +2842,7 @@ input[type="number"]::-webkit-inner-spin-button {
     }
 
     #signup-form-modal .modal-body {
-        padding: 0;
+        padding: 16px;
         max-height: calc(100vh - 200px);
         overflow-y: auto;
     }
@@ -2858,8 +2850,8 @@ input[type="number"]::-webkit-inner-spin-button {
 
 @media (max-width: 480px) {
     #signup-form-modal {
-        padding: 0;
-        padding-top: 0;
+        padding: 10px;
+        padding-top: 20px;
         justify-content: flex-start;
         align-items: center;
     }
@@ -2873,7 +2865,7 @@ input[type="number"]::-webkit-inner-spin-button {
     }
 
     #signup-form-modal .modal-header {
-        padding: 0;
+        padding: 16px;
     }
 
     #signup-form-modal .modal-header h2 {
@@ -2881,7 +2873,7 @@ input[type="number"]::-webkit-inner-spin-button {
     }
 
     #signup-form-modal .modal-body {
-        padding: 0;
+        padding: 16px;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
     }
