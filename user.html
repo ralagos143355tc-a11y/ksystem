@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Backend API URL - Railway deployment -->
+  <meta name="api-base-url" content="https://ksystem-production.up.railway.app">
   <title>Customer Dashboard - Seoul Surplus</title>
   <link rel="stylesheet" href="user-style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -183,6 +185,7 @@
   </main>
 
   <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+  <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="inventory-utils.js"></script>
   <script>
@@ -217,7 +220,10 @@
     var lastReservationSync = localStorage.getItem('lastReservationSync') || '0';
     
     // API configuration
-    var API_BASE_URL = (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    // API configuration - use config.js for Railway deployment
+    var API_BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.baseUrl) 
+      ? window.APP_CONFIG.baseUrl.replace(/\/+$/, '')
+      : (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
     var DEFAULT_PRODUCT_IMAGE = 'https://via.placeholder.com/400?text=No+Image';
     
     // Function to resolve product image URL
@@ -1388,7 +1394,7 @@
     
     // ==================== REAL-TIME UPDATES (WebSocket) ====================
     var socket = null;
-    var API_BASE_URL_WS = (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    var API_BASE_URL_WS = API_BASE_URL.replace(/\/+$/, '');
     
     // Initialize WebSocket connection
     function initWebSocket() {

@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Backend API URL - Railway deployment -->
+  <meta name="api-base-url" content="https://ksystem-production.up.railway.app">
   <title>Admin Dashboard - Seoul Surplus</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="sales-notification-styles.css">
@@ -897,6 +899,7 @@
     </section>
   </main>
   
+  <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="inventory-utils.js"></script>
   <script src="admin.js"></script>
@@ -946,7 +949,10 @@
       var originalProductStock = {}; // Track original stock values
       var pendingStockChanges = {};
       var hasUnsavedInventoryChanges = false;
-      var API_BASE_URL = (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+      // Use config.js for API URL, fallback to localhost for development
+      var API_BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.baseUrl) 
+        ? window.APP_CONFIG.baseUrl.replace(/\/+$/, '')
+        : (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
       var DEFAULT_PRODUCT_IMAGE = 'https://via.placeholder.com/70?text=No+Image';
 
       // Mobile Menu Toggle
@@ -2052,7 +2058,7 @@
         }
         
         // First, get the product from database to get category_id
-        fetch('http://localhost:3000/api/products/' + numericProductId)
+        fetch(API_BASE_URL + '/api/products/' + numericProductId)
           .then(function(response) {
             return response.json();
           })
@@ -2062,7 +2068,7 @@
             
             // If no category_id, try to get it from category name
             if (!categoryId && product.category) {
-              return fetch('http://localhost:3000/api/categories')
+              return fetch(API_BASE_URL + '/api/categories')
                 .then(function(response) {
                   return response.json();
                 })
@@ -2077,7 +2083,7 @@
           })
           .then(function(categoryId) {
             // Update product in database
-            return fetch('http://localhost:3000/api/products/' + numericProductId, {
+            return fetch(API_BASE_URL + '/api/products/' + numericProductId, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json'
@@ -2111,7 +2117,7 @@
             ? userId.toString().substring(1)
             : userId;
 
-          return fetch('http://localhost:3000/api/inventory/movements', {
+          return fetch(API_BASE_URL + '/api/inventory/movements', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -4296,7 +4302,7 @@
                 return response.text().then(function(text) {
                   console.error('Non-JSON response when adding product:', text.slice(0, 200));
                   var message = 'Server returned HTML instead of JSON. ' +
-                    'Make sure the Node server is running on http://localhost:3000 and that /api/products exists.';
+                    'Make sure the backend server is running and accessible at ' + API_BASE_URL + ' and that /api/products exists.';
                   throw new Error(message);
                 });
               }
@@ -4574,7 +4580,7 @@
         }
         
         var categoryName = categoryFilter ? categoryFilter.value : '';
-        var url = 'http://localhost:3000/api/inventory/movements';
+        var url = API_BASE_URL + '/api/inventory/movements';
         
         fetch(url)
           .then(function(response) {
@@ -5569,7 +5575,7 @@
 
       // ==================== REAL-TIME UPDATES (WebSocket) ====================
       var socket = null;
-      var API_BASE_URL_WS = (window.APP_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+      var API_BASE_URL_WS = API_BASE_URL.replace(/\/+$/, '');
       
       // Initialize WebSocket connection
       function initWebSocket() {
