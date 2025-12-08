@@ -1748,6 +1748,8 @@ app.get('/api/sales/summary', async (req, res) => {
 
     if (timeframe === 'daily') {
       whereClauses.push('DATE(so.ordered_at) = CURDATE()');
+    } else if (timeframe === 'weekly') {
+      whereClauses.push('so.ordered_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)');
     } else if (timeframe === 'monthly') {
       whereClauses.push('YEAR(so.ordered_at) = ?');
       params.push(year);

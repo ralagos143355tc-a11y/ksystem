@@ -475,6 +475,7 @@
             <label for="sales-timeframe-filter">Timeframe:</label>
             <select id="sales-timeframe-filter">
             <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
             <option value="yearly">Yearly</option>
           </select>
@@ -3450,6 +3451,13 @@
           if (timeframe === 'daily') {
             var now = new Date();
             if (orderYear !== now.getFullYear() || orderMonth !== (now.getMonth() + 1) || orderDate !== now.getDate()) {
+              return false;
+            }
+          } else if (timeframe === 'weekly') {
+            var now = new Date();
+            var weekAgo = new Date(now);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            if (d < weekAgo) {
               return false;
             }
           } else if (timeframe === 'monthly') {
